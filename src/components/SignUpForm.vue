@@ -1,0 +1,364 @@
+<template>
+  <div class="container">
+    <img class="wave" src="../assets/wave.svg" />
+    <div class="img">
+      <img src="../assets/login.svg" />
+    </div>
+    <div class="signup-content">
+      <notifications group="noty" />
+      <form action="index.html">
+        <img src="../assets/avatar.svg" />
+        <h2 class="title">Sign Up</h2>
+        <div class="input-div user">
+          <div class="i">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="div">
+            <h5>Username</h5>
+            <input type="text" v-model="user" class="input" />
+          </div>
+        </div>
+        <div class="input-div one">
+          <div class="i">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <div class="div">
+            <h5>E-mail</h5>
+            <input type="text" v-model="email" class="input" />
+          </div>
+        </div>
+        <div class="input-div pass">
+          <div class="i">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div class="div">
+            <h5>Password</h5>
+            <input type="password" v-model="password" class="input" />
+          </div>
+        </div>
+        <button @click="signup" class="btn">Sign Up</button>
+        <button class="btn">
+          Back
+          <router-link to="/login"></router-link>
+        </button>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script>
+import firebase from "firebase";
+import Swal from "sweetalert2";
+
+export default {
+  name: "signup",
+  data() {
+    return {
+      user: "",
+      email: "",
+      password: ""
+    };
+  },
+  mounted() {
+    const inputs = document.querySelectorAll(".input");
+
+    function addcl() {
+      let parent = this.parentNode.parentNode;
+      parent.classList.add("focus");
+    }
+
+    function remcl() {
+      let parent = this.parentNode.parentNode;
+      if (this.value == "") {
+        parent.classList.remove("focus");
+      }
+    }
+
+    inputs.forEach(input => {
+      input.addEventListener("focus", addcl);
+      input.addEventListener("blur", remcl);
+    });
+  },
+  methods: {
+    signup: function(e) {
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(this.email, this.password)
+        .then(cred => {
+          const db = firebase.firestore();
+          db.collection("users")
+            .doc(cred.user.uid)
+            .set({
+              username: this.user,
+              email: this.email
+            });
+
+          Swal.fire({
+            title: "You have successfully registered",
+            position: "top-end",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 2000
+          });
+          this.$router.replace("/");
+        })
+        .catch(err => {
+          this.$notify({
+            group: "noty",
+            type: "error",
+            text: err.message
+          });
+        });
+      e.preventDefault();
+    }
+  }
+};
+</script>
+
+<style scoped>
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  overflow: hidden;
+}
+
+.wave {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  z-index: -1;
+}
+
+.container {
+  width: 85vw;
+  height: 85vh;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 18rem;
+  padding: 0 2rem;
+}
+
+.img {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.signup-content {
+  display: flex;
+  justify-content: flex-start;
+  position: relative;
+  align-items: center;
+  text-align: center;
+  bottom: 70px;
+}
+
+.img img {
+  width: 500px;
+}
+
+form {
+  width: 360px;
+}
+
+.signup-content img {
+  height: 100px;
+}
+
+.signup-content h2 {
+  font-family: "Poppins", sans-serif;
+  margin: 15px 0;
+  color: #4ec2ba;
+  font-size: 2.7rem;
+}
+
+.signup-content .input-div {
+  position: relative;
+  display: grid;
+  grid-template-columns: 7% 93%;
+  margin: 25px 0;
+  padding: 5px 0;
+  border-bottom: 2px solid #d9d9d9;
+}
+
+.signup-content .input-div.one {
+  margin-top: 0;
+}
+
+.i {
+  color: #d9d9d9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.i i {
+  transition: 0.3s;
+}
+
+.input-div > div {
+  position: relative;
+  height: 45px;
+}
+
+.input-div > div > h5 {
+  font-family: "Poppins", sans-serif;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 18px;
+  transition: 0.3s;
+}
+
+.input-div.focus > div > h5 {
+  top: -5px;
+  font-size: 15px;
+}
+
+.input-div:before,
+.input-div:after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  width: 0%;
+  height: 2px;
+  background-color: #4ec2ba;
+  transition: 0.4s;
+}
+
+.input-div:before {
+  right: 50%;
+}
+
+.input-div:after {
+  left: 50%;
+}
+
+.input-div.focus:before,
+.input-div.focus:after {
+  width: 50%;
+}
+
+.input-div.focus > .i > i {
+  color: #4ec2ba;
+}
+
+.input-div > div > input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: none;
+  padding: 0.5rem 0.7rem;
+  font-size: 1.2rem;
+  color: #555;
+  font-family: "poppins", sans-serif;
+}
+
+.input-div.pass {
+  margin-bottom: 4px;
+}
+
+.input:focus::placeholder {
+  color: transparent;
+}
+
+a {
+  display: block;
+  text-align: right;
+  text-decoration: none;
+  color: #999;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+a:hover {
+  color: #4ec2ba;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  height: 50px;
+  border-radius: 25px;
+  outline: none;
+  border: none;
+  background-image: linear-gradient(to right, #4ec2ba, #84d4cf, #4ec2ba);
+  background-size: 200%;
+  font-size: 1.2rem;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  text-transform: uppercase;
+  margin: 1rem 0;
+  cursor: pointer;
+  transition: 0.5s;
+}
+.btn:hover {
+  background-position: right;
+}
+
+@media screen and (max-width: 1050px) {
+  .container {
+    grid-gap: 5rem;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  form {
+    width: 290px;
+  }
+
+  .signup-content h2 {
+    font-size: 2.4rem;
+    margin: 8px 0;
+  }
+
+  .img img {
+    width: 400px;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+    width: 100%;
+    height: 100%;
+    display: inline-block;
+  }
+
+  .img {
+    display: none;
+  }
+
+  .wave {
+    display: none;
+  }
+
+  .signup-content {
+    justify-content: center;
+    position: relative;
+    margin-top: 115px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .signup-content {
+    justify-content: center;
+  }
+
+  .input-div {
+    min-width: 250px;
+  }
+}
+</style>
